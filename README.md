@@ -5,6 +5,11 @@
 
 `youtube-wpm` is a CLI tool to get a YouTube video's words per minute (WPM).
 
+[![PyPI version](https://badge.fury.io/py/youtube-wpm.svg)](https://badge.fury.io/py/youtube-wpm)
+![Python Version](https://img.shields.io/pypi/pyversions/youtube-wpm)
+[![CI](https://github.com/thombashi/youtube-wpm/actions/workflows/ci.yml/badge.svg)](https://github.com/thombashi/youtube-wpm/actions/workflows/ci.yml)
+[![CodeQL](https://github.com/thombashi/youtube-wpm/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/thombashi/youtube-wpm/actions/workflows/github-code-scanning/codeql)
+
 
 ## Installation
 
