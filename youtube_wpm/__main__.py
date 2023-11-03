@@ -27,7 +27,7 @@ def parse_option() -> argparse.Namespace:
             """
         ),
     )
-    parser.add_argument("video_id", help="Youtube video ID")
+    parser.add_argument("video_id_list", nargs="+", help="YouTube video IDs")
 
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
 
@@ -74,69 +74,74 @@ def main() -> int:
 
     initialize_logger(name=MODULE_NAME, log_level=ns.log_level)
 
-    video_id = normalize_youtube_id(ns.video_id)
-    logger.debug(f"fetching transcripts of {video_id} ...")
+    return_value = 0
+    for video_id in ns.video_id_list:
+        video_id = normalize_youtube_id(video_id)
+        logger.debug(f"fetching transcripts of {video_id=} ...")
 
-    try:
-        transcripts = YouTubeTranscriptApi.list_transcripts(video_id)
-    except TranscriptsDisabled as e:
-        logger.error(e)
-        return 1
+        try:
+            transcripts = YouTubeTranscriptApi.list_transcripts(video_id)
+        except TranscriptsDisabled as e:
+            logger.error(e)
+            return_value = 1
+            continue
 
-    try:
-        transcript = transcripts.find_transcript([ns.language])
-    except NoTranscriptFound as e:
-        logger.error(e)
-        return 1
+        try:
+            transcript = transcripts.find_transcript([ns.language])
+        except NoTranscriptFound as e:
+            logger.error(e)
+            return_value = 1
+            continue
 
-    logger.debug(
-        f"calculating wpm: {video_id=}, {transcript.language=}, {transcript.language_code=}, {transcript.is_generated=}"
-    )
+        logger.debug(
+            f"calculating wpm: {video_id=}, {transcript.language=}, {transcript.language_code=}, "
+            f"{transcript.is_generated=}"
+        )
 
-    initial_wpm: Decimal = Decimal(200)
-    prev_wpm: Decimal = initial_wpm
-    inference_spw = calc_seconds_per_word(prev_wpm)
+        initial_wpm: Decimal = Decimal(200)
+        prev_wpm: Decimal = initial_wpm
+        inference_spw = calc_seconds_per_word(prev_wpm)
 
-    sequences = transcript.fetch()
-    for i in range(MAX_ITERATION):
-        stat = calc_speak_time(sequences, inference_spw=inference_spw)
-        diff_wpm = abs(stat.wpm - prev_wpm)
-        logger.debug(f"iteration={i}, wpm={stat.wpm:.1f}, diff_wpm={diff_wpm:.1f}")
-        if diff_wpm < EXIT_WPM_DIFF_THRESHOLD:
-            break
+        sequences = transcript.fetch()
+        for i in range(MAX_ITERATION):
+            stat = calc_speak_time(sequences, inference_spw=inference_spw)
+            diff_wpm = abs(stat.wpm - prev_wpm)
+            logger.debug(f"iteration={i}, wpm={stat.wpm:.1f}, diff_wpm={diff_wpm:.1f}")
+            if diff_wpm < EXIT_WPM_DIFF_THRESHOLD:
+                break
 
-        inference_spw = calc_seconds_per_word(stat.wpm)
-        prev_wpm = stat.wpm
+            inference_spw = calc_seconds_per_word(stat.wpm)
+            prev_wpm = stat.wpm
 
-    logger.debug(f"fetching vido info of {video_id} ...")
-    yt = YouTube.from_id(video_id)
-    channel = Channel(yt.channel_url)
-    video_time = hr.Time(str(yt.length), default_unit=hr.Time.Unit.SECOND).to_humanreadable()
+        logger.debug(f"fetching vido info of {video_id} ...")
+        yt = YouTube.from_id(video_id)
+        channel = Channel(yt.channel_url)
+        video_time = hr.Time(str(yt.length), default_unit=hr.Time.Unit.SECOND).to_humanreadable()
 
-    assert stat.total_speak_secs > 0
-    outputs = [
-        f"- Title: [{yt.title}]({make_youtube_url(video_id)})",
-        f"- Channel: [{channel.channel_name}]({yt.channel_url})",
-        f"- Time: {video_time}",
-        f"- Words Per Minute: {stat.wpm:.1f}",
-        f"- Auto generated transcript: {transcript.is_generated}",
-        f"- Total word count: {stat.total_word_ct}",
-        "- Approximate blank time: {}".format(
-            hr.Time(
-                str(int(stat.total_blank_secs)), default_unit=hr.Time.Unit.SECOND
-            ).to_humanreadable()
-        ),
-        "- Approximate speaking time: {}".format(
-            hr.Time(
-                str(int(stat.total_speak_secs)), default_unit=hr.Time.Unit.SECOND
-            ).to_humanreadable()
-        ),
-    ]
+        assert stat.total_speak_secs > 0
+        outputs = [
+            f"- Title: [{yt.title}]({make_youtube_url(video_id)})",
+            f"- Channel: [{channel.channel_name}]({yt.channel_url})",
+            f"- Time: {video_time}",
+            f"- Words Per Minute: {stat.wpm:.1f}",
+            f"- Auto generated transcript: {transcript.is_generated}",
+            f"- Total word count: {stat.total_word_ct}",
+            "- Approximate blank time: {}".format(
+                hr.Time(
+                    str(int(stat.total_blank_secs)), default_unit=hr.Time.Unit.SECOND
+                ).to_humanreadable()
+            ),
+            "- Approximate speaking time: {}".format(
+                hr.Time(
+                    str(int(stat.total_speak_secs)), default_unit=hr.Time.Unit.SECOND
+                ).to_humanreadable()
+            ),
+        ]
+        for out in outputs:
+            print(out)
+        print()
 
-    for out in outputs:
-        print(out)
-
-    return 0
+    return return_value
 
 
 if __name__ == "__main__":
