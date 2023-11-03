@@ -89,7 +89,7 @@ def main() -> int:
         return 1
 
     logger.debug(
-        f"{video_id=}, {transcript.language=}, {transcript.language_code=}, {transcript.is_generated=}"
+        f"calculating wpm: {video_id=}, {transcript.language=}, {transcript.language_code=}, {transcript.is_generated=}"
     )
 
     initial_wpm: Decimal = Decimal(200)
