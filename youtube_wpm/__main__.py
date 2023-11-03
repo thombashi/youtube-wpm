@@ -15,7 +15,7 @@ from ._youtube import calc_speak_time, make_youtube_url, normalize_youtube_id
 
 def parse_option() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.RawDescriptionHelpFormatter,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description=dedent(
             """\
             A CLI tool to get a YouTube video's words per minute (WPM).
@@ -34,13 +34,13 @@ def parse_option() -> argparse.Namespace:
     parser.add_argument(
         "--language",
         default="en",
-        help="language code of the transcript. defaults to 'en'.",
+        help="language code of the transcript",
     )
     parser.add_argument(
         "--initial-wpm",
         type=float,
         default=INITIAL_APPROXIMATE_WPM,
-        help=f"initial approximate words per minute. defaults to {INITIAL_APPROXIMATE_WPM}.",
+        help="initial approximate words per minute",
     )
 
     loglevel_dest = "log_level"
@@ -51,7 +51,7 @@ def parse_option() -> argparse.Namespace:
         action="store_const",
         const=LogLevel.DEBUG,
         default=LogLevel.INFO,
-        help="for debug print.",
+        help="for debug print",
     )
     group.add_argument(
         "--quiet",
@@ -59,7 +59,7 @@ def parse_option() -> argparse.Namespace:
         action="store_const",
         const=LogLevel.QUIET,
         default=LogLevel.INFO,
-        help="suppress execution log messages.",
+        help="suppress execution log messages",
     )
 
     return parser.parse_args()
