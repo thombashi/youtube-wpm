@@ -42,7 +42,7 @@ setuptools.setup(
     description="youtube-wpm is a CLI tool to get a YouTube video's words per minute (WPM).",
     include_package_data=True,
     keywords=[
-        "Youtube",
+        "YouTube",
         "Transcript",
         "WPM",
     ],
