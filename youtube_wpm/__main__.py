@@ -4,12 +4,13 @@ from decimal import Decimal
 from textwrap import dedent
 
 import humanreadable as hr
+from pytube import Channel, YouTube
 from youtube_transcript_api import NoTranscriptFound, TranscriptsDisabled, YouTubeTranscriptApi
 
 from .__version__ import __version__
 from ._const import EXIT_WPM_DIFF_THRESHOLD, INITIAL_APPROXIMATE_WPM, MAX_ITERATION, MODULE_NAME
 from ._logger import LogLevel, initialize_logger, logger
-from ._youtube import calc_speak_time, normalize_youtube_id
+from ._youtube import calc_speak_time, make_youtube_url, normalize_youtube_id
 
 
 def parse_option() -> argparse.Namespace:
@@ -107,20 +108,29 @@ def main() -> int:
         inference_spw = calc_seconds_per_word(stat.wpm)
         prev_wpm = stat.wpm
 
+    logger.debug(f"fetching vido info of {video_id} ...")
+    yt = YouTube.from_id(video_id)
+    channel = Channel(yt.channel_url)
+    video_time = hr.Time(str(yt.length), default_unit=hr.Time.Unit.SECOND).to_humanreadable()
+
     assert stat.total_speak_secs > 0
     outputs = [
-        f"Total word count: {stat.total_word_ct}",
-        "Approximate blank time: {}".format(
+        f"- Title: [{yt.title}]({make_youtube_url(video_id)})",
+        f"- Channel: [{channel.channel_name}]({yt.channel_url})",
+        f"- Time: {video_time}",
+        f"- Words Per Minute: {stat.wpm:.1f}",
+        f"- Auto generated transcript: {transcript.is_generated}",
+        f"- Total word count: {stat.total_word_ct}",
+        "- Approximate blank time: {}".format(
             hr.Time(
                 str(int(stat.total_blank_secs)), default_unit=hr.Time.Unit.SECOND
             ).to_humanreadable()
         ),
-        "Approximate speaking time: {}".format(
+        "- Approximate speaking time: {}".format(
             hr.Time(
                 str(int(stat.total_speak_secs)), default_unit=hr.Time.Unit.SECOND
             ).to_humanreadable()
         ),
-        f"Words Per Minute: {stat.wpm:.1f}",
     ]
 
     for out in outputs:
