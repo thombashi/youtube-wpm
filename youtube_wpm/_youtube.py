@@ -61,6 +61,12 @@ def normalize_youtube_id(value: str) -> str:
     raise ValueError(f"invalid video id: {value}")
 
 
+def make_youtube_url(youtube_id: str) -> str:
+    youtube_id = normalize_youtube_id(youtube_id)
+
+    return f"http://youtube.com/watch?v={youtube_id}"
+
+
 def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStat:
     stat = SpeakStat(
         total_word_ct=0,
