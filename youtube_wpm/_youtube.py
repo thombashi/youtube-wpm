@@ -42,12 +42,12 @@ class Weight:
         return self.approx_speak_time / self._total_wegiht
 
 
-def validate_youtube_id(value: str) -> bool:
+def is_valid_youtube_id(value: str) -> bool:
     return RE_VIDEO_ID.match(value) is not None
 
 
 def normalize_youtube_id(value: str) -> str:
-    if validate_youtube_id(value):
+    if is_valid_youtube_id(value):
         return value
 
     m = RE_LONG_VIDEO_URL.search(value)
