@@ -44,6 +44,14 @@ def parse_option() -> argparse.Namespace:
         help="initial approximate words per minute",
     )
 
+    group = parser.add_argument_group("Output Format")
+    group.add_argument(
+        "--length-format",
+        default="short",
+        choices=["short", "long"],
+        help="the output format of the video length",
+    )
+
     loglevel_dest = "log_level"
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
@@ -124,26 +132,24 @@ def main() -> int:
         logger.debug(f"fetching vido info of {video_id} ...")
         yt = YouTube.from_id(video_id)
         channel = Channel(yt.channel_url)
-        video_time = hr.Time(str(yt.length), default_unit=hr.Time.Unit.SECOND).to_humanreadable()
+        video_length = hr.Time(str(yt.length), default_unit=hr.Time.Unit.SECOND)
+        approx_blank_time = hr.Time(
+            str(int(stat.total_blank_secs)), default_unit=hr.Time.Unit.SECOND
+        )
+        approx_speaking_time = hr.Time(
+            str(int(stat.total_speak_secs)), default_unit=hr.Time.Unit.SECOND
+        )
 
         assert stat.total_speak_secs > 0
         outputs = [
             f"- Title: [{yt.title}]({make_youtube_url(video_id)})",
             f"- Channel: [{channel.channel_name}]({yt.channel_url})",
-            f"- Time: {video_time}",
+            f"- Time: {video_length.to_humanreadable(style=ns.length_format)}",
             f"- Words Per Minute: {stat.wpm:.1f}",
             f"- Auto generated transcript: {transcript.is_generated}",
             f"- Total word count: {stat.total_word_ct}",
-            "- Approximate blank time: {}".format(
-                hr.Time(
-                    str(int(stat.total_blank_secs)), default_unit=hr.Time.Unit.SECOND
-                ).to_humanreadable()
-            ),
-            "- Approximate speaking time: {}".format(
-                hr.Time(
-                    str(int(stat.total_speak_secs)), default_unit=hr.Time.Unit.SECOND
-                ).to_humanreadable()
-            ),
+            f"- Approximate blank time: {approx_blank_time.to_humanreadable(style=ns.length_format)}",
+            f"- Approximate speaking time: {approx_speaking_time.to_humanreadable(style=ns.length_format)}",
         ]
         for out in outputs:
             print(out)
