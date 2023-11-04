@@ -2,7 +2,7 @@ import argparse
 import sys
 from decimal import Decimal
 from textwrap import dedent
-from typing import List
+from typing import Final, List
 
 import humanreadable as hr
 from pytube import Channel, YouTube
@@ -90,6 +90,8 @@ def main() -> int:
 
     initialize_logger(name=MODULE_NAME, log_level=ns.log_level)
 
+    initial_wpm: Final = Decimal(ns.initial_wpm)
+
     return_value = 0
     for video_id in ns.video_id_list:
         video_id = normalize_youtube_id(video_id)
@@ -114,7 +116,6 @@ def main() -> int:
             f"{transcript.is_generated=}"
         )
 
-        initial_wpm: Decimal = Decimal(200)
         prev_wpm: Decimal = initial_wpm
         inference_spw = calc_seconds_per_word(prev_wpm)
 
