@@ -39,7 +39,7 @@ def parse_option() -> argparse.Namespace:
             """
         ),
     )
-    parser.add_argument("video_id_list", nargs="+", help="YouTube video IDs")
+    parser.add_argument("video_id_list", metavar="VIDEO_ID", nargs="+", help="YouTube video IDs")
 
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
     parser.add_argument("-v", "--verbose", dest="verbosity_level", action="count", default=0)
@@ -62,13 +62,13 @@ def parse_option() -> argparse.Namespace:
         dest="output_format",
         default="markdown",
         choices=["markdown", "md-table"],
-        help="the output format",
+        help="output format",
     )
     group.add_argument(
         "--length-format",
         default="short",
         choices=["short", "long"],
-        help="the output format of the video length",
+        help="output format of the video length",
     )
 
     loglevel_dest = "log_level"
