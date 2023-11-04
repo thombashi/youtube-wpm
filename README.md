@@ -22,31 +22,52 @@ pip install youtube-wpm
 
 ```
 $ youtube-wpm https://youtu.be/QpBTM0GO6xI
-Total word count: 1373
-Approximate blank time: 1 minutes 47 seconds
-Approximate speaking time: 7 minutes 39 seconds
-Words Per Minute: 179.1
+- Title: [Google I/O '23 in under 10 minutes](http://youtube.com/watch?v=QpBTM0GO6xI)
+- Channel: [Google](https://www.youtube.com/channel/UCK8sQmJBp8GCxrOtXWBpyEA)
+- Time: 9m 39s
+- WPM: 179.3
+- Auto Gen Transcript: False
 ```
+
+Fetch multiple YouTube videos' information as a Markdown table:
+
+```
+$ youtube-wpm --format=md-table QpBTM0GO6xI qSkB8-zL3Mo
+```
+
+Output:
+
+|                                    Title                                     |                              Channel                               |  Time  |  WPM  | Auto Gen Transcript |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------ | ------ | ----: | ------------------- |
+| [Google I/O '23 in under 10 minutes](http://youtube.com/watch?v=QpBTM0GO6xI) | [Google](https://www.youtube.com/channel/UCK8sQmJBp8GCxrOtXWBpyEA) | 9m 39s | 179.3 | False               |
+| [Google Cloud \| Google I/O 2023](http://youtube.com/watch?v=qSkB8-zL3Mo)     | [Google](https://www.youtube.com/channel/UCK8sQmJBp8GCxrOtXWBpyEA) | 9m 27s | 169.4 | False               |
 
 
 ## Command help
 
 ```
-usage: youtube-wpm [-h] [-V] [--language LANGUAGE] [--initial-wpm INITIAL_WPM] [--debug | --quiet] video_id
+usage: youtube-wpm [-h] [-V] [-v] [--language LANGUAGE] [--initial-wpm INITIAL_WPM] [--format {markdown,md-table}] [--length-format {short,long}] [--debug | --quiet] VIDEO_ID [VIDEO_ID ...]
 
-A CLI tool to calculate the words per minute (WPM) of a YouTube video.
+A CLI tool to get a YouTube video's words per minute (WPM).
 
 positional arguments:
-  video_id              Youtube video ID
+  VIDEO_ID              YouTube video IDs
 
 options:
   -h, --help            show this help message and exit
   -V, --version         show program's version number and exit
-  --language LANGUAGE   language code of the transcript. defaults to 'en'.
+  -v, --verbose
+  --language LANGUAGE   language code of the transcript (default: en)
   --initial-wpm INITIAL_WPM
-                        initial approximate words per minute. defaults to 180.
-  --debug               for debug print.
-  --quiet               suppress execution log messages.
+                        initial approximate words per minute (default: 180)
+  --debug               for debug print (default: LogLevel.INFO)
+  --quiet               suppress execution log messages (default: LogLevel.INFO)
+
+Output Format:
+  --format {markdown,md-table}
+                        output format (default: markdown)
+  --length-format {short,long}
+                        output format of the video length (default: short)
 
 Issue tracker: https://github.com/thombashi/youtube-wpm/issues
 ```
