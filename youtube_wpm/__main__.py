@@ -3,16 +3,26 @@ import sys
 from decimal import Decimal
 from itertools import chain
 from textwrap import dedent
-from typing import Final, List
+from typing import Final, List, Literal
 
 import humanreadable as hr
+import pytablewriter as ptw
 from pytube import Channel, YouTube
 from youtube_transcript_api import NoTranscriptFound, TranscriptsDisabled, YouTubeTranscriptApi
 
 from .__version__ import __version__
-from ._const import EXIT_WPM_DIFF_THRESHOLD, INITIAL_APPROXIMATE_WPM, MAX_ITERATION, MODULE_NAME
+from ._const import (
+    EXIT_WPM_DIFF_THRESHOLD,
+    INITIAL_APPROXIMATE_WPM,
+    MAX_ITERATION,
+    MODULE_NAME,
+    Header,
+)
 from ._logger import LogLevel, initialize_logger, logger
 from ._youtube import SpeakStats, calc_speak_time, make_youtube_url, normalize_youtube_id
+
+
+OutputFormat = Literal["markdown", "md-table"]
 
 
 def parse_option() -> argparse.Namespace:
@@ -47,6 +57,13 @@ def parse_option() -> argparse.Namespace:
     )
 
     group = parser.add_argument_group("Output Format")
+    group.add_argument(
+        "--format",
+        dest="output_format",
+        default="markdown",
+        choices=["markdown", "md-table"],
+        help="the output format",
+    )
     group.add_argument(
         "--length-format",
         default="short",
@@ -88,6 +105,7 @@ def normalize_languages(language: str) -> List[str]:
 
 
 def extract_outputs(
+    output_format: OutputFormat,
     yt: YouTube,
     channel: Channel,
     speak_stats: SpeakStats,
@@ -96,6 +114,9 @@ def extract_outputs(
     verbosity_level: int,
 ) -> List[str]:
     video_id: Final[str] = yt.vid_info["videoDetails"]["videoId"]
+    title_link: Final = f"[{yt.title}]({make_youtube_url(video_id)})"
+    channel_link: Final = f"[{channel.channel_name}]({yt.channel_url})"
+    wpm: Final = f"{speak_stats.wpm:.1f}"
     video_length: Final[str] = hr.Time(
         str(yt.length), default_unit=hr.Time.Unit.SECOND
     ).to_humanreadable(style=length_format)
@@ -107,24 +128,76 @@ def extract_outputs(
     ).to_humanreadable(style=length_format)
 
     assert speak_stats.total_speak_secs > 0
-    outputs = [
-        f"- Title: [{yt.title}]({make_youtube_url(video_id)})",
-        f"- Channel: [{channel.channel_name}]({yt.channel_url})",
-        f"- Time: {video_length}",
-        f"- Words Per Minute: {speak_stats.wpm:.1f}",
-        f"- Auto generated transcript: {is_generated_transcript}",
-    ]
-    if verbosity_level > 0:
-        outputs.extend(
-            [
-                f"- Total word count: {speak_stats.total_word_ct}",
-                f"- Approximate blank time: {approx_blank_time}",
-                f"- Approximate speaking time: {approx_speaking_time}",
-            ]
-        )
-    outputs.append("")
+
+    if output_format == "markdown":
+        outputs = [
+            f"- {Header.TITLE}: {title_link}",
+            f"- {Header.CHANNEL}: {channel_link}",
+            f"- {Header.TIME}: {video_length}",
+            f"- {Header.WPM}: {wpm}",
+            f"- {Header.AUTO_GEN_TRANSCRIPT}: {is_generated_transcript}",
+        ]
+        if verbosity_level > 0:
+            outputs.extend(
+                [
+                    f"- {Header.TOTAL_WORD_COUNT}: {speak_stats.total_word_ct}",
+                    f"- {Header.APPROXIMATE_BLANK_TIME}: {approx_blank_time}",
+                    f"- {Header.APPROXIMATE_SPEAKING_TIME}: {approx_speaking_time}",
+                ]
+            )
+        outputs.append("")
+    elif output_format == "md-table":
+        outputs = [
+            title_link,
+            channel_link,
+            video_length,
+            wpm,
+            str(is_generated_transcript),
+        ]
+        if verbosity_level > 0:
+            outputs.extend(
+                [
+                    str(speak_stats.total_word_ct),
+                    approx_blank_time,
+                    approx_speaking_time,
+                ]
+            )
+    else:
+        raise ValueError(f"unknown output format: {output_format}")
 
     return outputs
+
+
+def render_outputs(
+    output_format: OutputFormat, output_matrix: List[List[str]], verbosity_level: int
+) -> None:
+    if output_format == "markdown":
+        for line in chain.from_iterable(output_matrix):
+            print(line)
+    elif output_format == "md-table":
+        base_headers: Final = [
+            Header.TITLE,
+            Header.CHANNEL,
+            Header.TIME,
+            Header.WPM,
+            Header.AUTO_GEN_TRANSCRIPT,
+        ]
+
+        if verbosity_level == 0:
+            headers = base_headers
+        else:
+            headers = base_headers + [
+                Header.TOTAL_WORD_COUNT,
+                Header.APPROXIMATE_BLANK_TIME,
+                Header.APPROXIMATE_SPEAKING_TIME,
+            ]
+        ptw.MarkdownTableWriter(
+            headers=headers,
+            value_matrix=output_matrix,
+            margin=1,
+        ).write_table()
+    else:
+        raise ValueError(f"unknown output format: {output_format}")
 
 
 def main() -> int:
@@ -177,6 +250,7 @@ def main() -> int:
         yt = YouTube.from_id(video_id)
         output_matrix.append(
             extract_outputs(
+                output_format=ns.output_format,
                 yt=yt,
                 channel=Channel(yt.channel_url),
                 speak_stats=stats,
@@ -186,8 +260,7 @@ def main() -> int:
             )
         )
 
-    for line in chain.from_iterable(output_matrix):
-        print(line)
+    render_outputs(ns.output_format, output_matrix, verbosity_level=ns.verbosity_level)
 
     return return_value
 
