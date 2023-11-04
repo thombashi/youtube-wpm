@@ -2,6 +2,7 @@ import argparse
 import sys
 from decimal import Decimal
 from textwrap import dedent
+from typing import List
 
 import humanreadable as hr
 from pytube import Channel, YouTube
@@ -69,6 +70,13 @@ def calc_seconds_per_word(wpm: Decimal) -> Decimal:
     return 60 / wpm
 
 
+def normalize_languages(language: str) -> List[str]:
+    if language in ("en", "en-US"):
+        return ["en-US", "en"]
+
+    return [language]
+
+
 def main() -> int:
     ns = parse_option()
 
@@ -87,7 +95,7 @@ def main() -> int:
             continue
 
         try:
-            transcript = transcripts.find_transcript([ns.language])
+            transcript = transcripts.find_transcript(normalize_languages(ns.language))
         except NoTranscriptFound as e:
             logger.error(e)
             return_value = 1
