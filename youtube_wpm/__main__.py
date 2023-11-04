@@ -164,14 +164,14 @@ def main() -> int:
 
         sequences = transcript.fetch()
         for i in range(MAX_ITERATION):
-            stat = calc_speak_time(sequences, inference_spw=inference_spw)
-            diff_wpm = abs(stat.wpm - prev_wpm)
-            logger.debug(f"iteration={i}, wpm={stat.wpm:.1f}, diff_wpm={diff_wpm:.1f}")
+            stats = calc_speak_time(sequences, inference_spw=inference_spw)
+            diff_wpm = abs(stats.wpm - prev_wpm)
+            logger.debug(f"iteration={i}, wpm={stats.wpm:.1f}, diff_wpm={diff_wpm:.1f}")
             if diff_wpm < EXIT_WPM_DIFF_THRESHOLD:
                 break
 
-            inference_spw = calc_seconds_per_word(stat.wpm)
-            prev_wpm = stat.wpm
+            inference_spw = calc_seconds_per_word(stats.wpm)
+            prev_wpm = stats.wpm
 
         logger.debug(f"fetching vido info of {video_id} ...")
         yt = YouTube.from_id(video_id)
@@ -179,7 +179,7 @@ def main() -> int:
             extract_outputs(
                 yt=yt,
                 channel=Channel(yt.channel_url),
-                speak_stats=stat,
+                speak_stats=stats,
                 length_format=ns.length_format,
                 is_generated_transcript=transcript.is_generated,
                 verbosity_level=ns.verbosity_level,
