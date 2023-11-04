@@ -16,7 +16,7 @@ RE_SOUND: Final[Pattern] = re.compile(r"^\[[A-Z][a-zA-Z ]+\]$")
 
 
 @dataclass
-class SpeakStat:
+class SpeakStats:
     total_word_ct: int
     total_blank_secs: Decimal
     total_speak_secs: Decimal
@@ -67,8 +67,8 @@ def make_youtube_url(youtube_id: str) -> str:
     return f"http://youtube.com/watch?v={youtube_id}"
 
 
-def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStat:
-    stat = SpeakStat(
+def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStats:
+    stat = SpeakStats(
         total_word_ct=0,
         total_blank_secs=Decimal(0),
         total_speak_secs=Decimal(0),
