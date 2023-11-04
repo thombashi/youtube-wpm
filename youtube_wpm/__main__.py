@@ -31,6 +31,7 @@ def parse_option() -> argparse.Namespace:
     parser.add_argument("video_id_list", nargs="+", help="YouTube video IDs")
 
     parser.add_argument("-V", "--version", action="version", version=f"%(prog)s {__version__}")
+    parser.add_argument("-v", "--verbose", dest="verbosity_level", action="count", default=0)
 
     parser.add_argument(
         "--language",
@@ -148,13 +149,17 @@ def main() -> int:
             f"- Time: {video_length.to_humanreadable(style=ns.length_format)}",
             f"- Words Per Minute: {stat.wpm:.1f}",
             f"- Auto generated transcript: {transcript.is_generated}",
-            f"- Total word count: {stat.total_word_ct}",
-            f"- Approximate blank time: {approx_blank_time.to_humanreadable(style=ns.length_format)}",
-            f"- Approximate speaking time: {approx_speaking_time.to_humanreadable(style=ns.length_format)}",
         ]
-        for out in outputs:
-            print(out)
-        print()
+        if ns.verbosity_level > 0:
+            outputs.extend(
+                [
+                    f"- Total word count: {stat.total_word_ct}",
+                    f"- Approximate blank time: {approx_blank_time.to_humanreadable(style=ns.length_format)}",
+                    f"- Approximate speaking time: {approx_speaking_time.to_humanreadable(style=ns.length_format)}",
+                ]
+            )
+        outputs.append("")
+        print("\n".join(outputs))
 
     return return_value
 
