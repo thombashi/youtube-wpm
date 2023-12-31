@@ -107,7 +107,7 @@ def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStats
         chars_per_duration = char_ct / display_duration
         approx_speak_time = (word_ct * Decimal(0.95) + char_ct / Decimal(100)) * inference_spw
         logger.trace(
-            f"{text}: {start=}, {word_ct=}, {char_ct=}, {display_duration=}, "
+            f"{text} || {start=:.1f}, {word_ct=}, {char_ct=}, {display_duration=:.1f}, "
             f"words/d={words_per_duration:.2f}, chars/d={chars_per_duration:.2f}, "
             f"speak-time={approx_speak_time:.2f}"
         )

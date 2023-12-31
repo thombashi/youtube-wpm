@@ -74,6 +74,14 @@ def parse_option() -> argparse.Namespace:
     loglevel_dest = "log_level"
     group = parser.add_mutually_exclusive_group()
     group.add_argument(
+        "--trace",
+        dest=loglevel_dest,
+        action="store_const",
+        const=LogLevel.TRACE,
+        default=LogLevel.INFO,
+        help="for trace print",
+    )
+    group.add_argument(
         "--debug",
         dest=loglevel_dest,
         action="store_const",

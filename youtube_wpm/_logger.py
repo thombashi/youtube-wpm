@@ -10,6 +10,7 @@ from ._const import MODULE_NAME
 class LogLevel(enum.Enum):
     DEBUG = "DEBUG"
     INFO = "INFO"
+    TRACE = "TRACE"
     QUIET = "QUIET"
 
 
