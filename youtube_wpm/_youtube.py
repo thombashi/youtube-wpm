@@ -12,7 +12,8 @@ RE_LONG_VIDEO_URL: Final[Pattern] = re.compile(
     rf"(?<=https://www\.youtube.com/watch\?v=)({ID_PATTERN})"
 )
 RE_SHORT_VIDEO_URL: Final[Pattern] = re.compile(rf"(?<=https://youtu\.be/)({ID_PATTERN})")
-RE_SOUND: Final[Pattern] = re.compile(r"^\[[A-Z][a-zA-Z ]+\]$")
+RE_SOUND: Final[Pattern] = re.compile(r"^\[[A-Z][a-zA-Z ]+\]")
+RE_SPEAKER_NAME: Final = re.compile(r"^[A-Z\s]+:\s*")
 
 
 @dataclass
@@ -82,8 +83,11 @@ def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStats
     prev_last: Decimal = Decimal(0)
 
     for sequence in sequences:
-        text = sequence["text"].strip()
-        if RE_SOUND.search(text):
+        text = sequence["text"].strip().replace("\n", " ")
+        text = RE_SOUND.sub("", text).strip()
+        text = RE_SPEAKER_NAME.sub("", text).strip()
+
+        if not text:
             continue
 
         prev_last = last
@@ -100,7 +104,7 @@ def calc_speak_time(sequences: List[Dict], inference_spw: Decimal) -> SpeakStats
         # https://github.com/jdepoix/youtube-transcript-api/issues/21
         display_duration = Decimal(sequence["duration"])
 
-        words = text.strip().split()
+        words = text.split()
         word_ct = len(words)
         char_ct = sum([len(word) for word in words])
         words_per_duration = word_ct / display_duration
