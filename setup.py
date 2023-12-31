@@ -4,10 +4,10 @@ from typing import Dict, Final, List
 import setuptools
 
 
-MODULE_NAME: Final[str] = "youtube-wpm"
-REPOSITORY_URL: Final[str] = f"https://github.com/thombashi/{MODULE_NAME:s}"
-REQUIREMENT_DIR: Final[str] = "requirements"
-ENCODING: Final[str] = "utf8"
+MODULE_NAME: Final = "youtube-wpm"
+REPOSITORY_URL: Final = f"https://github.com/thombashi/{MODULE_NAME:s}"
+REQUIREMENT_DIR: Final = "requirements"
+ENCODING: Final = "utf8"
 
 pkg_info: Dict[str, str] = {}
 
@@ -25,7 +25,7 @@ with open(os.path.join(MODULE_NAME.replace("-", "_"), "__version__.py")) as f:
     exec(f.read(), pkg_info)
 
 with open("README.md", encoding=ENCODING) as f:
-    LONG_DESCRIPTION: Final[str] = f.read()
+    LONG_DESCRIPTION: Final = f.read()
 
 with open(os.path.join(REQUIREMENT_DIR, "requirements.txt")) as f:
     INSTALL_REQUIRES: Final[List[str]] = [line.strip() for line in f if line.strip()]

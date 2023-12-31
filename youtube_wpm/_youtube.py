@@ -6,7 +6,7 @@ from typing import Dict, Final, List, Pattern
 from ._logger import logger
 
 
-ID_PATTERN: Final[str] = r"[a-zA-Z0-9_-]{11}"
+ID_PATTERN: Final = r"[a-zA-Z0-9_-]{11}"
 RE_VIDEO_ID: Final[Pattern] = re.compile(rf"^({ID_PATTERN})$")
 RE_LONG_VIDEO_URL: Final[Pattern] = re.compile(
     rf"(?<=https://www\.youtube.com/watch\?v=)({ID_PATTERN})"
